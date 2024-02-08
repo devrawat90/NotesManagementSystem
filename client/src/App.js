@@ -9,7 +9,6 @@ import Login from './components/Login';
 function App() {
   const BASEURL = `https://notesmanagement.onrender.com/`
   // const BASEURL = `http://localhost:7880`
-
   return (
     <BrowserRouter>
       <Routes>
