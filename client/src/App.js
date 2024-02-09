@@ -1,14 +1,13 @@
 import { AddCOmponent } from './components/AddCOmponent';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './App.css';
-import "./App.css";
 import { BrowserRouter as BrowserRouter, Routes, Route } from "react-router-dom"
 import Privateroute from './components/Privateroute';
 import Signup from './components/Signup';
 import Login from './components/Login';
 function App() {
-  const BASEURL = `https://notesmanagement.onrender.com/`
-  // const BASEURL = `http://localhost:7880`
+  // const BASEURL = `https://notesmanagement.onrender.com`
+  const BASEURL = `http://localhost:7880`
   return (
     <BrowserRouter>
       <Routes>

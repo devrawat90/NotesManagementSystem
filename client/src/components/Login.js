@@ -46,16 +46,16 @@ const Login = ({ BASEURL }) => {
             } else {
                 toast.error(resp.data.message)
             }
-            // setData({
-            //     email: "",
-            //     password: ""
-            // })
+            setData({
+                email: "",
+                password: ""
+            })
         })
     }
     return (
         <div className="container-fluid">
             <ToastContainer />
-            <div className="row">
+            <div className="row mt-5">
                 <div className='hr-w  mar-new'>
                     <div className="col-sm-4 shadow-1">
                         <Form className='padd-3' onSubmit={handleSbmit}>
