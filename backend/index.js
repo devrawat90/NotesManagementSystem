@@ -21,7 +21,6 @@ app.use(cors({
     ],
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true,
-    exposedHeaders: ["Content-Type"] // Specify the headers you want to expose
 }));
 
 //  connect database
