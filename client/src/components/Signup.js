@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import "./login.css";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 const Signup = ({ BASEURL }) => {
+    const navigate = useNavigate()
     const [data, setData] = useState({
         name: "",
         email: "",
@@ -22,6 +23,11 @@ const Signup = ({ BASEURL }) => {
             console.log(resp);
             if (resp.status === 200) {
                 toast.success(resp.data.message)
+
+                // Delay navigation after 1 second (1000 milliseconds)
+                setTimeout(() => {
+                    navigate("/");
+                }, 3000);
             }
             if (resp.status === 201) {
                 toast.error(resp.data.message)
