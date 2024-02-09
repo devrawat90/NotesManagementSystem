@@ -1,6 +1,7 @@
 const mongoose = require("mongoose")
 
 const notesSchema = mongoose.Schema({
+    adminid: { type: String },
     title: { type: String },
     description: { type: String },
     createdAt: {

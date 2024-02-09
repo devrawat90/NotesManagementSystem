@@ -10,3 +10,12 @@ export const isLoggedIn = () => {
     }
 
 }
+
+export const adminId = () => {
+    let id = localStorage.getItem('adminid')
+    if (id == null) {
+        return false
+    } else {
+        return id
+    }
+}

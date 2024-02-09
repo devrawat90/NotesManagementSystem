@@ -41,6 +41,7 @@ const Login = ({ BASEURL }) => {
             console.log(resp);
             if (resp.status === 200 && resp.data.login === true) {
                 toast.success(resp.data.message)
+                localStorage.setItem("adminid", resp.data.adminid)
                 Cookies.set("authToken", resp.data.token, { expires: 1 });
                 navigate("/user/dashboard")
             } else {

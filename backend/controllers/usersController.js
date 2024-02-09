@@ -43,7 +43,7 @@ const usersController = {
                     if (err) {
                         res.json({ message: "token generation failed", error: err })
                     } else {
-                        res.json({ message: "Login Successfull", login: true, token: token })
+                        res.json({ message: "Login Successfull", login: true, token: token, adminid: userExists._id })
                     }
 
                 }))
@@ -61,25 +61,29 @@ const usersController = {
     createNote: async (req, res) => {
         console.log(req.body);
         try {
-            const { title, description } = req.body;
-            if (!title || !description) return res.status(201).json({ message: "all fields are required" })
+            const { title, description, adminid } = req.body;
+            if (!title || !description || !adminid) return res.status(201).json({ message: "all fields are required" })
             const note = await Notes.create({
                 title: title,
+                adminid: adminid,
                 description: description,
             })
             const data = await note.save();
-            res.status(200).json({ message: "Note added Successfully", data: data })
+            res.json({ message: "Note added Successfully", data: data })
         } catch (error) {
             res.json({ message: "Internal Server Error" })
         }
     },
     getNotes: async (req, res) => {
+        const id = req.params.id
+        console.log(id);
         try {
-            const data = await Notes.find()
+            const data = await Notes.find({ adminid: id })
+            console.log(data);
             if (data.length > 0) {
-                res.status(200).json({ data: data, message: "Notes found" })
+                res.json({ data: data, message: "Notes found" })
             } else {
-                res.status(404).json({ message: 'No User Found' })
+                res.json({ message: 'no record found' })
             }
         } catch (error) {
             res.json({ message: "Internal Server Error" })

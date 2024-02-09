@@ -9,15 +9,16 @@ import { Button, Col, Row } from 'react-bootstrap';
 import MainModal from './MainModal';
 import Cookies from 'js-cookie';
 export function AddCOmponent({ BASEURL }) {
-    const [token, settoken] = useState("")
+    // const [token, settoken] = useState("")
+    const [adminid, setAdminid] = useState("")
 
 
-    console.log(token);
     // fetch all notes data
     const [getdata, setGetData] = useState([])
     const fetchdata = async () => {
         const exists = Cookies.get('authToken');
-        settoken(exists)
+        const id = localStorage.getItem('adminid');
+        setAdminid(id)
         const AxiosCongif = {
             headers: {
                 'Content-Type': 'application/json',
@@ -25,19 +26,29 @@ export function AddCOmponent({ BASEURL }) {
             },
         }
         console.log(AxiosCongif);
-        await axios.get(`${BASEURL}/getnote`, AxiosCongif).then((resp) => {
-            const sortedData = resp.data.data.sort((a, b) => {
-                return new Date(b.createdAt) - new Date(a.createdAt);
-            });
+        await axios.get(`${BASEURL}/getnote/${id}`, AxiosCongif).then((resp) => {
+            console.log("....response", resp.data.message);
+            if (resp.data.message === "Notes found") {
+                const sortedData = resp.data.data.sort((a, b) => {
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+                });
+                setGetData(sortedData)
+            } else { setGetData([]); }
 
-            setGetData(sortedData);
+
         });
     };
+
+    // const getAdminid = () => {
+
+    // }
 
     useEffect(() => {
         fetchdata()
     }, [])
-    console.log(getdata);
+
+    console.log(adminid);
+    // console.log(getdata);
 
     //  all columns.......................... 
     const columns = [
@@ -116,12 +127,24 @@ export function AddCOmponent({ BASEURL }) {
     // submit note .....................
     const [show, setShow] = useState(false);
     const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
+    const handleShow = () => {
+        setShow(true)
+
+        setAdminid(localStorage.getItem('adminid'))
+        setFormData({
+            title: "",
+            adminid: adminid,
+            description: '',
+        })
+    };
     // State to store form values
     const [formData, setFormData] = useState({
         title: "",
+        adminid: adminid,
         description: '',
     });
+
+    console.log(formData);
 
     // Handler for form field changes
     const handleChange = (event) => {
@@ -145,7 +168,7 @@ export function AddCOmponent({ BASEURL }) {
                 toast.error(resp.data.message)
             }
             fetchdata()
-            setFormData({})
+            // setFormData()
             handleClose()
         })
     }
@@ -154,12 +177,13 @@ export function AddCOmponent({ BASEURL }) {
     const [editView, setEditView] = useState(false)
     // Define handleEdit function
     const handleEdit = (rowIndex) => {
+
         // Logic for handling edit action
         setEditView(true)
-        console.log(`Edit action for row index ${rowIndex}`);
+        // console.log(`Edit action for row index ${rowIndex}`);
         setEditData(rowIndex)
     };
-    console.log(editData);
+    // console.log(editData);
 
     // Handler for form field changes
     const handleEditChange = (event) => {
@@ -169,7 +193,6 @@ export function AddCOmponent({ BASEURL }) {
             [name]: value,
         }));
     };
-
     // Handler for form submission
     const handleEditSubmit = async (event) => {
         event.preventDefault();
@@ -191,7 +214,7 @@ export function AddCOmponent({ BASEURL }) {
     // Define handleDelete function
     const handleDelete = async (rowIndex) => {
         // Logic for handling delete action
-        console.log(`Delete action for row id ${rowIndex}`);
+        // console.log(`Delete action for row id ${rowIndex}`);
         await axios.post(`${BASEURL}/deletenote/${rowIndex}`).then((resp) => {
             if (resp.status === 200) {
                 // Update state after successful deletion
@@ -212,6 +235,14 @@ export function AddCOmponent({ BASEURL }) {
             <Form onSubmit={show ? handleSubmit : handleEditSubmit}>
                 <Row className="mb-3">
                     <Form.Group className="mb-3" controlId="formGridName">
+                        <Form.Control
+                            type="hidden"
+                            placeholder=""
+                            name="adminid"
+                            value={show ? formData.adminid : editData.adminid}
+                            // onChange={show ? handleChange : handleEditChange}
+                            readOnly={true}
+                        />
                         <Form.Label>Tittle</Form.Label>
                         <Form.Control
                             type="text"
@@ -254,13 +285,13 @@ export function AddCOmponent({ BASEURL }) {
             </Row>
             <div className='container'>
                 <div >
-                    <MUIDataTable
+                    {<MUIDataTable
                         className={"table-responsive"}
                         title={"Notes"}
                         data={data}
                         columns={columns}
                         options={options}
-                    />
+                    />}
                 </div>
                 {show && <MainModal
                     show={show}
