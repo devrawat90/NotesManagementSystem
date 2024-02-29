@@ -1,4 +1,5 @@
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPenToSquare, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import axios from 'axios';
@@ -11,8 +12,6 @@ import Cookies from 'js-cookie';
 export function AddCOmponent({ BASEURL }) {
     // const [token, settoken] = useState("")
     const [adminid, setAdminid] = useState("")
-
-
     // fetch all notes data
     const [getdata, setGetData] = useState([])
     const fetchdata = async () => {
@@ -39,10 +38,6 @@ export function AddCOmponent({ BASEURL }) {
         });
     };
 
-    // const getAdminid = () => {
-
-    // }
-
     useEffect(() => {
         fetchdata()
     }, [])
@@ -54,11 +49,38 @@ export function AddCOmponent({ BASEURL }) {
     const columns = [
         {
             name: "serialno",
-            label: "serial no",
+            label: "Sr.No",
             options: {
                 filter: true,
                 sort: true,
                 customBodyRenderLite: (dataIndex) => dataIndex + 1,
+            },
+        },
+        {
+            name: "status",
+            label: "Status",
+            options: {
+                filter: true,
+                sort: true,
+                customBodyRender: (value) => {
+                    return (
+                        <div className='d-flex justify-content-between align-items-center'
+                        >
+                            <div
+                                style={{
+                                    padding: "10px",
+                                    borderRadius: '5px',          // Example border radius
+                                    // color: '#007BFF',             // Example text color
+                                    backgroundColor: '#E1F5FE', // Example background color
+                                    fontWeight: "bold",
+                                    color: value === "Pending" ? "#6b01f7" : value === "finished" ? "green" : value === "upcoming" ? "#f9d008" : value === "ongoing" ? "#06e198" : "red"
+                                }}
+                            >
+                                {value}
+                            </div >
+                        </div>
+                    );
+                },
             },
         },
         {
@@ -94,22 +116,70 @@ export function AddCOmponent({ BASEURL }) {
                 },
             },
         },
+
+        {
+            name: "dueDate",
+            label: "Due Date",
+            options: {
+                filter: true,
+                sort: true,
+                customBodyRender: (value) => {
+                    const createdAt = new Date(value);
+                    const formattedDate = createdAt.toLocaleDateString(); // You can customize the formatting
+                    return (
+                        <div>
+                            {formattedDate}
+                        </div>
+                    );
+                },
+            },
+        },
+        {
+            name: "status",
+            label: "Update Status",
+            options: {
+                filter: true,
+                sort: true,
+                customBodyRender: (value, tableMeta, updateValue) => {
+                    const rowData = data[tableMeta.rowIndex];
+                    const currentStatus = rowData.status;
+
+                    return (
+                        <div className='d-flex justify-content-between align-items-center'>
+                            <select
+                                className="form-select custom-select"
+                                style={{
+                                    borderRadius: '5px',
+                                    color: '#007BFF',
+                                }}
+                                value={currentStatus} // Set the default value based on the current status
+                                onChange={(e) => handleSelectChange(e, rowData)}
+                            >
+                                <option className='text-info' value="Pending">Pending</option>
+                                <option className='text-info' value="ongoing">On Going</option>
+                                <option className='text-warning' value="upcoming">Upcoming</option>
+                                <option className='text-success' value="finished">Finished</option>
+                                <option className='text-danger' value="cancel">Cancel</option>
+                                {/* Add more options as needed */}
+                            </select>
+                        </div>
+                    );
+                },
+            }
+        },
         {
             name: "Actions",
-            label: "Actions",
+            label: "ACTIONS",
             options: {
                 filter: true,
                 sort: false,
                 customBodyRender: (value, tableMeta, updateValue) => {
                     const rowData = data[tableMeta.rowIndex];
                     return (
-                        <div className='d-flex justify-content-between align-items-center'>
-                            <Button variant="outline-primary" onClick={() => handleEdit(rowData)}>
-                                Edit
-                            </Button>
-                            <Button variant="outline-danger" onClick={() => handleDelete(rowData._id)}>
-                                Delete
-                            </Button>
+                        <div className='d-flex justify-content-around align-items-center'>
+                            {/* <FontAwesomeIcon icon="fa-solid fa-pen-to-square" /> */}
+                            <FontAwesomeIcon className="text-primary" icon={faPenToSquare} onClick={() => handleEdit(rowData)} />
+                            <FontAwesomeIcon className="text-danger" icon={faTrashAlt} onClick={() => handleDelete(rowData._id)} />
                         </div>
                     );
                 },
@@ -123,6 +193,22 @@ export function AddCOmponent({ BASEURL }) {
         selectableRows: "none", // Hide the checkbox column
     };
 
+    const handleSelectChange = async (e, rowData) => {
+        const selectedValue = e.target.value;
+        console.log(`Selected value: ${selectedValue}`);
+        await axios.post(`${BASEURL}/updatenotestatus/${rowData._id}`, { selectedValue }).then((resp) => {
+            console.log(resp);
+            if (resp.status === 200) {
+                toast.success(resp.data.message)
+            }
+            if (resp.status === 201) {
+                toast.error(resp.data.message)
+            }
+
+            fetchdata()
+        })
+        // Add any other logic you want to perform with the selected value
+    };
 
     // submit note .....................
     const [show, setShow] = useState(false);
@@ -135,6 +221,7 @@ export function AddCOmponent({ BASEURL }) {
             title: "",
             adminid: adminid,
             description: '',
+            dueDate: ""
         })
     };
     // State to store form values
@@ -142,6 +229,7 @@ export function AddCOmponent({ BASEURL }) {
         title: "",
         adminid: adminid,
         description: '',
+        dueDate: ""
     });
 
     console.log(formData);
@@ -176,14 +264,25 @@ export function AddCOmponent({ BASEURL }) {
     const [editData, setEditData] = useState({})
     const [editView, setEditView] = useState(false)
     // Define handleEdit function
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is zero-based, so we add 1
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
     const handleEdit = (rowIndex) => {
-
         // Logic for handling edit action
         setEditView(true)
         // console.log(`Edit action for row index ${rowIndex}`);
-        setEditData(rowIndex)
+        const formattedDate = rowIndex.dueDate ? formatDate(rowIndex.dueDate) : ''; // Format date to "YYYY-MM-DD"
+        setEditData({
+            ...rowIndex,
+            dueDate: formattedDate || '' // Initialize with an empty string if formattedDate is undefined
+        });
+        // setEditData(rowIndex)
     };
-    // console.log(editData);
+    // console.log("edit ", editData);
 
     // Handler for form field changes
     const handleEditChange = (event) => {
@@ -227,8 +326,6 @@ export function AddCOmponent({ BASEURL }) {
         })
     };
 
-
-
     //  form content ......................................................................
     const Addform =
         <div className='p-2'>
@@ -261,6 +358,15 @@ export function AddCOmponent({ BASEURL }) {
                         type="text"
                         name="description"
                         value={show ? formData.description : editData.description}
+                        onChange={show ? handleChange : handleEditChange}
+                    />
+                </Form.Group>
+                <Form.Group className="mb-3" controlId="formGridDate">
+                    <Form.Label>Date</Form.Label>
+                    <Form.Control
+                        type="date"
+                        name="dueDate"
+                        value={show ? formData.dueDate : editData.dueDate}
                         onChange={show ? handleChange : handleEditChange}
                     />
                 </Form.Group>

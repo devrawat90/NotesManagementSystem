@@ -10,5 +10,6 @@ router.post("/createnote", usersController.createNote) //create new note
 router.get("/getnote/:id", verifyToken, usersController.getNotes) // get all notes
 router.post("/deletenote/:id", usersController.deleteNote) // delete note
 router.post("/updatenote/:id", usersController.updateNote) // update note
+router.post("/updatenotestatus/:id", usersController.Notestatusupdate) // update note status
 module.exports = router;
 

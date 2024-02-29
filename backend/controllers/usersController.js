@@ -61,12 +61,14 @@ const usersController = {
     createNote: async (req, res) => {
         console.log(req.body);
         try {
-            const { title, description, adminid } = req.body;
-            if (!title || !description || !adminid) return res.status(201).json({ message: "all fields are required" })
+            const { title, description, adminid, dueDate } = req.body;
+            if (!title || !description || !adminid || !dueDate) return res.status(201).json({ message: "all fields are required" })
             const note = await Notes.create({
                 title: title,
                 adminid: adminid,
                 description: description,
+                dueDate: dueDate,
+                status: "Pending"
             })
             const data = await note.save();
             res.json({ message: "Note added Successfully", data: data })
@@ -79,7 +81,7 @@ const usersController = {
         console.log(id);
         try {
             const data = await Notes.find({ adminid: id })
-            console.log(data);
+            // console.log(data);
             if (data.length > 0) {
                 res.json({ data: data, message: "Notes found" })
             } else {
@@ -110,6 +112,7 @@ const usersController = {
                 $set: {
                     title: req.body.title,
                     description: req.body.description,
+                    dueDate: req.body.dueDate
                 },
             })
             if (updatedData) {
@@ -120,6 +123,28 @@ const usersController = {
 
         } catch (error) {
             return res.json({ message: "Internal Server Error" })
+        }
+    },
+    Notestatusupdate: async (req, res) => {
+        try {
+            const User = await Notes.findOne({ _id: req.params.id });
+            console.log(User);
+            const updatedData = await Notes.findOneAndUpdate(
+                { _id: req.params.id },
+                {
+                    $set: {
+                        status: req.body.selectedValue
+                    }
+                }
+            );
+
+            if (updatedData) {
+                res.json({ message: "Note updated successfully", data: updatedData });
+            } else {
+                res.json({ message: "Error: Note not found" });
+            }
+        } catch (error) {
+            return res.json({ message: "Internal Server Error" });
         }
     }
 }
